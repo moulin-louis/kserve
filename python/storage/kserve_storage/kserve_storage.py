@@ -27,12 +27,14 @@ import zipfile
 from pathlib import Path
 from typing import Dict
 from urllib.parse import urlparse
+
 import requests
 
 from kserve_storage.logging import logger
 
 MODEL_MOUNT_DIRS = "/mnt/models"
 
+_MLFLOW_PREFIX = "mlflow://"
 _GCS_PREFIX = "gs://"
 _S3_PREFIX = "s3://"
 _HDFS_PREFIX = "hdfs://"
@@ -99,12 +101,21 @@ class Storage(object):
                 model_dir = Storage._download_from_uri(uri, out_dir)
             elif uri.startswith(_HF_PREFIX):
                 model_dir = Storage._download_hf(uri, out_dir)
+            elif uri.startswith(_MLFLOW_PREFIX):
+                model_dir = Storage._download_mlflow(uri, out_dir)
             else:
                 raise Exception(
                     "Cannot recognize storage type for "
                     + uri
-                    + "\n'%s', '%s', '%s', '%s' and '%s' are the current available storage type."
-                    % (_GCS_PREFIX, _S3_PREFIX, _LOCAL_PREFIX, _HTTP_PREFIX, _HF_PREFIX)
+                    + "\n'%s', '%s', '%s', '%s', '%s' and '%s' are the current available storage type."
+                    % (
+                        _GCS_PREFIX,
+                        _S3_PREFIX,
+                        _LOCAL_PREFIX,
+                        _HTTP_PREFIX,
+                        _HF_PREFIX,
+                        _MLFLOW_PREFIX,
+                    )
                 )
 
         logger.info("Successfully copied %s to %s", uri, out_dir)
@@ -151,6 +162,16 @@ class Storage(object):
                 with open(f"{temp_dir}/{key}", mode) as f:
                     f.write(value)
                     f.flush()
+
+        if storage_secret_json.get("type", "") == "mlflow":
+            for env_var, key in (
+                ("MLFLOW_TRACKING_URI", "tracking_uri"),
+                ("MLFLOW_TRACKING_USERNAME", "tracking_username"),
+                ("MLFLOW_TRACKING_PASSWORD", "tracking_password"),
+                ("MLFLOW_TRACKING_TOKEN", "tracking_token"),
+            ):
+                if key in storage_secret_json:
+                    os.environ[env_var] = storage_secret_json.get(key)
 
     @staticmethod
     def get_S3_config():
@@ -205,7 +226,7 @@ class Storage(object):
             kwargs.update({"endpoint_url": endpoint_url})
         verify_ssl = os.getenv("S3_VERIFY_SSL")
         if verify_ssl:
-            verify_ssl = not verify_ssl.lower() in ["0", "false"]
+            verify_ssl = verify_ssl.lower() not in ["0", "false"]
             kwargs.update({"verify": verify_ssl})
         else:
             verify_ssl = True
@@ -329,10 +350,42 @@ class Storage(object):
         return temp_dir
 
     @staticmethod
+    def _download_mlflow(uri, out_dir: str) -> str:
+        from mlflow.artifacts import download_artifacts
+        from mlflow.config import set_tracking_uri
+        from mlflow.exceptions import MlflowException
+
+        mlflow_tracking_uri = os.getenv("MLFLOW_TRACKING_URI")
+        if mlflow_tracking_uri is None:
+            raise ValueError("Cannot find MLFlow tracking Uri")
+        set_tracking_uri(mlflow_tracking_uri)
+
+        if (
+            os.getenv("MLFLOW_TRACKING_USERNAME") is not None
+            and os.getenv("MLFLOW_TRACKING_PASSWORD") is not None
+            and os.getenv("MLFLOW_TRACKING_TOKEN") is not None
+        ):
+            raise ValueError(
+                "Tracking Token cannot be set with Username/Password combo"
+            )
+
+        models = uri[len(_MLFLOW_PREFIX) :]
+        logger.info(f"Downloading {models} from {mlflow_tracking_uri}")
+        if not models:
+            raise ValueError("Model uri cannot be empty")
+        try:
+            download_artifacts(artifact_uri=models, dst_path=out_dir)
+        except MlflowException:
+            raise RuntimeError("Failed to download model from MLFlow")
+            pass
+        return out_dir
+
+    @staticmethod
     def _download_gcs(uri, temp_dir: str) -> str:
+        import copy
+
         from google.auth import exceptions
         from google.cloud import storage
-        import copy
 
         try:
             storage_client = storage.Client()
@@ -424,8 +477,8 @@ class Storage(object):
 
     @staticmethod
     def _download_hdfs(uri, out_dir: str) -> str:
-        from krbcontext.context import krbContext
         from hdfs.ext.kerberos import Client, KerberosClient
+        from krbcontext.context import krbContext
 
         config = Storage._load_hdfs_configuration()
 
