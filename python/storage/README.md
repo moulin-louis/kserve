@@ -23,7 +23,7 @@ A Python module for handling model storage and retrieval for KServe. This packag
 pip install kserve-storage
 ```
 
-Or with Poetry:
+Or with Uv: 
 
 ```bash
 uv add kserve-storage
