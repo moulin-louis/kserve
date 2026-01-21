@@ -125,9 +125,7 @@ def test_download_model_from_gcs_as_single_file(mock_client):
 @mock.patch("os.mkdir")
 @mock.patch("zipfile.ZipFile")
 @mock.patch("google.cloud.storage.Client")
-def test_gcs_model_unpack_archive_file(
-    mock_client, MockZipFile, mock_create, mock_remove
-):
+def test_gcs_model_unpack_archive_file(mock_client, MockZipFile, mock_create, mock_remove):
     gcs_path = "gs://foo/bar"
     output_dir = "test/out_dir"
 

@@ -132,9 +132,7 @@ class Storage(object):
     @staticmethod
     def _update_with_storage_spec():
         storage_secret_json = json.loads(os.environ.get("STORAGE_CONFIG", "{}"))
-        storage_secret_override_params = json.loads(
-            os.environ.get("STORAGE_OVERRIDE_CONFIG", "{}")
-        )
+        storage_secret_override_params = json.loads(os.environ.get("STORAGE_OVERRIDE_CONFIG", "{}"))
         if storage_secret_override_params:
             for key, value in storage_secret_override_params.items():
                 storage_secret_json[key] = value
@@ -152,10 +150,7 @@ class Storage(object):
                 if key in storage_secret_json:
                     os.environ[env_var] = storage_secret_json.get(key)
 
-        if (
-            storage_secret_json.get("type", "") == "hdfs"
-            or storage_secret_json.get("type", "") == "webhdfs"
-        ):
+        if storage_secret_json.get("type", "") == "hdfs" or storage_secret_json.get("type", "") == "webhdfs":
             temp_dir = tempfile.mkdtemp()
             os.environ["HDFS_SECRET_DIR"] = temp_dir
             for key, value in storage_secret_json.items():
@@ -240,20 +235,14 @@ class Storage(object):
                 ca_bundle_full_path = isvc_aws_ca_bundle_path
             elif global_ca_bundle_configmap:
                 ca_bundle_set = True
-                global_ca_bundle_volume_mount_path = os.getenv(
-                    "CA_BUNDLE_VOLUME_MOUNT_POINT"
-                )
-                ca_bundle_full_path = os.path.join(
-                    global_ca_bundle_volume_mount_path, "cabundle.crt"
-                )
+                global_ca_bundle_volume_mount_path = os.getenv("CA_BUNDLE_VOLUME_MOUNT_POINT")
+                ca_bundle_full_path = os.path.join(global_ca_bundle_volume_mount_path, "cabundle.crt")
             if ca_bundle_set:
                 if os.path.exists(ca_bundle_full_path):
                     logger.info("ca bundle file(%s) exists." % (ca_bundle_full_path))
                     kwargs.update({"verify": ca_bundle_full_path})
                 else:
-                    raise RuntimeError(
-                        "Failed to find ca bundle file(%s)." % ca_bundle_full_path
-                    )
+                    raise RuntimeError("Failed to find ca bundle file(%s)." % ca_bundle_full_path)
         return kwargs
 
     @staticmethod
@@ -341,15 +330,11 @@ class Storage(object):
                 break
 
         if len(download_tasks) == 0:
-            raise RuntimeError(
-                "Failed to fetch model. No model found in %s." % bucket_path
-            )
+            raise RuntimeError("Failed to fetch model. No model found in %s." % bucket_path)
 
         num_processes = min(_S3_MAX_FILE_CONCURRENCY, len(download_tasks))
 
-        with multiprocessing.Pool(
-            processes=num_processes, initializer=Storage._init_s3_worker
-        ) as pool:
+        with multiprocessing.Pool(processes=num_processes, initializer=Storage._init_s3_worker) as pool:
             results = pool.map(Storage._download_s3_object, download_tasks)
 
         # Process results and handle errors
@@ -365,18 +350,12 @@ class Storage(object):
                 logger.error("Failed to download object %s: %s" % (obj_key, error_msg))
 
         if len(failed_downloads) > 0:
-            error_details = "; ".join(
-                [f"{obj}: {err}" for obj, err in failed_downloads]
-            )
-            raise RuntimeError(
-                f"Failed to download {len(failed_downloads)} files: {error_details}"
-            )
+            error_details = "; ".join([f"{obj}: {err}" for obj, err in failed_downloads])
+            raise RuntimeError(f"Failed to download {len(failed_downloads)} files: {error_details}")
 
         # Unpack compressed file, supports .tgz, tar.gz and zip file formats.
         if len(successful_downloads) == 1:
-            target_path = download_tasks[0][
-                2
-            ]  # target_path is the 3rd element in task_args
+            target_path = download_tasks[0][2]  # target_path is the 3rd element in task_args
             mimetype, _ = mimetypes.guess_type(target_path)
             if mimetype in ["application/x-tar", "application/zip"]:
                 temp_dir = Storage._unpack_archive_file(target_path, mimetype, temp_dir)
@@ -390,9 +369,7 @@ class Storage(object):
 
         # Validate that the URI has two parts: repo and model (optional hash)
         if len(components) != 2:
-            raise ValueError(
-                "URI must contain exactly one '/' separating the repo and model name"
-            )
+            raise ValueError("URI must contain exactly one '/' separating the repo and model name")
 
         repo = components[0]
         model_part = components[1]
@@ -409,9 +386,7 @@ class Storage(object):
 
         revision = hash_value if hash_value else None
 
-        snapshot_download(
-            repo_id=f"{repo}/{model}", revision=revision, local_dir=temp_dir
-        )
+        snapshot_download(repo_id=f"{repo}/{model}", revision=revision, local_dir=temp_dir)
         return temp_dir
 
     @staticmethod
@@ -450,14 +425,10 @@ class Storage(object):
                 subdir_object_key = blob.name.replace(bucket_path, "", 1).lstrip("/")
                 # Create necessary subdirectory to store the object locally
                 if "/" in subdir_object_key:
-                    local_object_dir = os.path.join(
-                        temp_dir, subdir_object_key.rsplit("/", 1)[0]
-                    )
+                    local_object_dir = os.path.join(temp_dir, subdir_object_key.rsplit("/", 1)[0])
                     if not os.path.isdir(local_object_dir):
                         os.makedirs(local_object_dir, exist_ok=True)
-                if subdir_object_key.strip() != "" and not subdir_object_key.endswith(
-                    "/"
-                ):
+                if subdir_object_key.strip() != "" and not subdir_object_key.endswith("/"):
                     dest_path = os.path.join(temp_dir, subdir_object_key)
                     logger.info("Downloading: %s", dest_path)
                     blob.download_to_filename(dest_path)
@@ -577,17 +548,13 @@ class Storage(object):
             files = client.list(path)
             file_count += len(files)
             for f in files:
-                client.download(
-                    f"{path}/{f}", out_dir, n_threads=int(config["N_THREADS"])
-                )
+                client.download(f"{path}/{f}", out_dir, n_threads=int(config["N_THREADS"]))
                 dest_file_path = f"{out_dir}/{f}"
 
         if file_count == 1:
             mimetype, _ = mimetypes.guess_type(dest_file_path)
             if mimetype in ["application/x-tar", "application/zip"]:
-                out_dir = Storage._unpack_archive_file(
-                    dest_file_path, mimetype, out_dir
-                )
+                out_dir = Storage._unpack_archive_file(dest_file_path, mimetype, out_dir)
         return out_dir
 
     @staticmethod
@@ -595,9 +562,7 @@ class Storage(object):
         """Async Azure blob download with chunked streaming and multi-level semaphores"""
         from azure.storage.blob.aio import BlobServiceClient
 
-        account_name, account_url, container_name, prefix = Storage._parse_azure_uri(
-            uri
-        )
+        account_name, account_url, container_name, prefix = Storage._parse_azure_uri(uri)
         logger.info(
             "Connecting to BLOB account: [%s], container: [%s], prefix: [%s]",
             account_name,
@@ -605,21 +570,14 @@ class Storage(object):
             prefix,
         )
 
-        token = (
-            Storage._get_azure_storage_token()
-            or Storage._get_azure_storage_access_key()
-        )
+        token = Storage._get_azure_storage_token() or Storage._get_azure_storage_access_key()
         if token is None:
-            logger.warning(
-                "Azure credentials or shared access signature token not found, retrying anonymous access"
-            )
+            logger.warning("Azure credentials or shared access signature token not found, retrying anonymous access")
 
         # File-level semaphore to control concurrent file downloads
         file_semaphore = asyncio.Semaphore(_AZURE_MAX_FILE_CONCURRENCY)
 
-        async with BlobServiceClient(
-            account_url, credential=token
-        ) as blob_service_client:
+        async with BlobServiceClient(account_url, credential=token) as blob_service_client:
             container_client = blob_service_client.get_container_client(container_name)
 
             # Get all blobs using flat listing (no delimiter) to get all files regardless of hierarchy
@@ -635,9 +593,7 @@ class Storage(object):
 
             # Create download tasks with semaphore control
             download_tasks = [
-                Storage._download_single_blob_async(
-                    container_client, blob, out_dir, prefix, file_semaphore
-                )
+                Storage._download_single_blob_async(container_client, blob, out_dir, prefix, file_semaphore)
                 for blob in blobs
             ]
 
@@ -685,9 +641,7 @@ class Storage(object):
             blob_client = container_client.get_blob_client(blob.name)
 
             # Download with streaming chunks to avoid memory overload
-            stream = await blob_client.download_blob(
-                max_concurrency=_AZURE_MAX_CHUNK_CONCURRENCY
-            )
+            stream = await blob_client.download_blob(max_concurrency=_AZURE_MAX_CHUNK_CONCURRENCY)
 
             with open(dest_path, "wb") as f:
                 # Stream chunks instead of loading entire file into memory
@@ -697,9 +651,7 @@ class Storage(object):
             return dest_path
 
     @staticmethod
-    def _download_azure_file_share(
-        uri, out_dir: str
-    ) -> str:  # pylint: disable=too-many-locals
+    def _download_azure_file_share(uri, out_dir: str) -> str:  # pylint: disable=too-many-locals
         from azure.storage.fileshare import ShareServiceClient
 
         account_name, account_url, share_name, prefix = Storage._parse_azure_uri(uri)
@@ -711,9 +663,7 @@ class Storage(object):
         )
         access_key = Storage._get_azure_storage_access_key()
         if access_key is None:
-            logger.warning(
-                "Azure storage access key not found, retrying anonymous access"
-            )
+            logger.warning("Azure storage access key not found, retrying anonymous access")
 
         share_service_client = ShareServiceClient(account_url, credential=access_key)
         share_client = share_service_client.get_share_client(share_name)
@@ -725,13 +675,9 @@ class Storage(object):
             curr_prefix, depth = stack.pop()
             if depth < 0:
                 continue
-            for item in share_client.list_directories_and_files(
-                directory_name=curr_prefix
-            ):
+            for item in share_client.list_directories_and_files(directory_name=curr_prefix):
                 if item.is_directory:
-                    stack.append(
-                        ("/".join([curr_prefix, item.name]).strip("/"), depth - 1)
-                    )
+                    stack.append(("/".join([curr_prefix, item.name]).strip("/"), depth - 1))
                 else:
                     share_files.append((curr_prefix, item))
         for prefix, file_item in share_files:
@@ -765,9 +711,7 @@ class Storage(object):
     def _parse_azure_uri(uri):  # pylint: disable=too-many-locals
         parsed = urlparse(uri)
         account_name = parsed.netloc.split(".")[0]
-        account_url = "https://{}{}".format(
-            parsed.netloc, "?" + parsed.query if parsed.query else ""
-        )
+        account_url = "https://{}{}".format(parsed.netloc, "?" + parsed.query if parsed.query else "")
         object_name, prefix = parsed.path.lstrip("/").split("/", 1)
         prefix = prefix.strip("/")
         return account_name, account_url, object_name, prefix
@@ -859,20 +803,17 @@ class Storage(object):
 
         with requests.get(uri, stream=True, headers=headers) as response:
             if response.status_code != 200:
-                raise RuntimeError(
-                    "URI: %s returned a %s response code." % (uri, response.status_code)
-                )
+                raise RuntimeError("URI: %s returned a %s response code." % (uri, response.status_code))
             zip_content_types = (
                 "application/x-zip-compressed",
                 "application/zip",
                 "application/zip-compressed",
             )
-            if mimetype == "application/zip" and not response.headers.get(
-                "Content-Type", ""
-            ).startswith(zip_content_types):
+            if mimetype == "application/zip" and not response.headers.get("Content-Type", "").startswith(
+                zip_content_types
+            ):
                 raise RuntimeError(
-                    "URI: %s did not respond with any of following 'Content-Type': "
-                    % uri
+                    "URI: %s did not respond with any of following 'Content-Type': " % uri
                     + ", ".join(zip_content_types)
                 )
             tar_content_types = (
@@ -881,23 +822,17 @@ class Storage(object):
                 "application/x-gzip",
                 "application/gzip",
             )
-            if mimetype == "application/x-tar" and not response.headers.get(
-                "Content-Type", ""
-            ).startswith(tar_content_types):
-                raise RuntimeError(
-                    "URI: %s did not respond with any of following 'Content-Type': "
-                    % uri
-                    + ", ".join(tar_content_types)
-                )
-            if (
-                mimetype != "application/zip" and mimetype != "application/x-tar"
-            ) and not response.headers.get("Content-Type", "").startswith(
-                "application/octet-stream"
+            if mimetype == "application/x-tar" and not response.headers.get("Content-Type", "").startswith(
+                tar_content_types
             ):
                 raise RuntimeError(
-                    "URI: %s did not respond with 'Content-Type': 'application/octet-stream'"
-                    % uri
+                    "URI: %s did not respond with any of following 'Content-Type': " % uri
+                    + ", ".join(tar_content_types)
                 )
+            if (mimetype != "application/zip" and mimetype != "application/x-tar") and not response.headers.get(
+                "Content-Type", ""
+            ).startswith("application/octet-stream"):
+                raise RuntimeError("URI: %s did not respond with 'Content-Type': 'application/octet-stream'" % uri)
 
             if encoding == "gzip":
                 stream = gzip.GzipFile(fileobj=response.raw)
@@ -925,8 +860,6 @@ class Storage(object):
                 with zipfile.ZipFile(file_path, "r") as archive:
                     archive.extractall(target_dir)
         except (tarfile.TarError, zipfile.BadZipfile) as e:
-            raise RuntimeError(
-                "Failed to unpack archive file. The file format is not valid."
-            ) from e
+            raise RuntimeError("Failed to unpack archive file. The file format is not valid.") from e
         os.remove(file_path)
         return target_dir

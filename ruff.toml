@@ -6,18 +6,20 @@ exclude = [
     "python/kserve/kserve/configuration.py",
     "python/kserve/kserve/rest.py",
     "python/kserve/kserve/api_client.py",
-    "python/kserve/test/test_v1*.py",
     "python/kserve/kserve/__init__.py",
+    "python/kserve/kserve/protocol/grpc/grpc_predict_v2*.py",
+    "python/kserve/kserve/protocol/rest/openai/types/*.py",
+    "python/kserve/kserve/models/*.py",
+    "python/kserve/test/test_v1*.py",
     "python/kserve/test/__init__.py",
     "python/kserve/test/test_knative*.py",
-    "python/kserve/kserve/protocol/grpc/grpc_predict_v2*.py",
     "python/kserve/build/**/*.py",
     "python/*_pb2.py",
     "python/*_pb2.pyi",
     "docs/**/*.py",
     "docs/**/*.ipynb",
-    "python/kserve/kserve/protocol/rest/openai/types/openapi.py",
 ]
+
 [lint]
 ignore = [
     "B017",

@@ -91,9 +91,7 @@ class MockHttpResponse(object):
 
 @mock.patch(
     "requests.get",
-    return_value=MockHttpResponse(
-        status_code=200, content_type="application/octet-stream"
-    ),
+    return_value=MockHttpResponse(status_code=200, content_type="application/octet-stream"),
 )
 def test_http_uri_path(_):
     http_uri = "http://foo.bar/model.joblib"
@@ -106,9 +104,7 @@ def test_http_uri_path(_):
 
 @mock.patch(
     "requests.get",
-    return_value=MockHttpResponse(
-        status_code=200, content_type="application/octet-stream"
-    ),
+    return_value=MockHttpResponse(status_code=200, content_type="application/octet-stream"),
 )
 def test_https_uri_path(_):
     https_uri = "https://foo.bar/model.joblib"
@@ -205,12 +201,12 @@ http_uri_path_testparams = [
     ),
     (
         "https://foo.bar/download?path=/20210530/model.zip",
-        MockHttpResponse(200, FILE_ZIP_RAW, "application/x-zip" "-compressed"),
+        MockHttpResponse(200, FILE_ZIP_RAW, "application/x-zip-compressed"),
         None,
     ),
     (
         "https://foo.bar/download?path=/20210530/model.zip",
-        MockHttpResponse(200, FILE_ZIP_RAW, "application/zip" "-compressed"),
+        MockHttpResponse(200, FILE_ZIP_RAW, "application/zip-compressed"),
         None,
     ),
 ]
