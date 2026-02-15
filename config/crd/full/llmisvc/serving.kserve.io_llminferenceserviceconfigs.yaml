@@ -8951,6 +8951,25 @@ spec:
                       type: object
                     scheduler:
                       properties:
+                        config:
+                          properties:
+                            inline:
+                              type: object
+                              x-kubernetes-preserve-unknown-fields: true
+                            ref:
+                              properties:
+                                key:
+                                  type: string
+                                name:
+                                  default: ""
+                                  type: string
+                                optional:
+                                  type: boolean
+                              required:
+                                - key
+                              type: object
+                              x-kubernetes-map-type: atomic
+                          type: object
                         pool:
                           properties:
                             ref:
@@ -12780,6 +12799,11 @@ spec:
                               x-kubernetes-list-type: map
                           type: object
                       type: object
+                  type: object
+                storageInitializer:
+                  properties:
+                    enabled:
+                      type: boolean
                   type: object
                 template:
                   properties:
@@ -29219,6 +29243,25 @@ spec:
                       type: object
                     scheduler:
                       properties:
+                        config:
+                          properties:
+                            inline:
+                              type: object
+                              x-kubernetes-preserve-unknown-fields: true
+                            ref:
+                              properties:
+                                key:
+                                  type: string
+                                name:
+                                  default: ""
+                                  type: string
+                                optional:
+                                  type: boolean
+                              required:
+                                - key
+                              type: object
+                              x-kubernetes-map-type: atomic
+                          type: object
                         pool:
                           properties:
                             ref:
@@ -33072,6 +33115,11 @@ spec:
                               x-kubernetes-list-type: map
                           type: object
                       type: object
+                  type: object
+                storageInitializer:
+                  properties:
+                    enabled:
+                      type: boolean
                   type: object
                 template:
                   properties:

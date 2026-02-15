@@ -7,9 +7,9 @@ repos:
           - --chart-search-root=charts
           - --output-file=README.md
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.13
+    rev: v0.15.1
     hooks:
-      - id: ruff
-        args: [--config, ruff.toml, --fix]
+      - id: ruff-check
+        args: [--config, ruff.toml]
       - id: ruff-format
         args: [--config, ruff.toml]

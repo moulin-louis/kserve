@@ -31,7 +31,12 @@ from vllm.entrypoints.openai.protocol import (
 )
 from vllm.entrypoints.openai.protocol import ChatCompletionRequest, ChatCompletionResponse as ChatCompletion
 from vllm.entrypoints.openai.protocol import CompletionRequest, CompletionResponse as Completion
-from vllm.entrypoints.openai.protocol import EmbeddingRequest, EmbeddingResponse as Embedding, EmbeddingResponseData, EmbeddingCompletionRequest
+from vllm.entrypoints.openai.protocol import (
+    EmbeddingRequest,
+    EmbeddingResponse as Embedding,
+    EmbeddingResponseData,
+    EmbeddingCompletionRequest,
+)
 from vllm.entrypoints.openai.protocol import RerankRequest, RerankResponse as Rerank
 from vllm.entrypoints.chat_utils import (
     ChatCompletionContentPartParam,

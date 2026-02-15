@@ -19,6 +19,7 @@ package v1alpha1
 import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"knative.dev/pkg/apis"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 	igwapi "sigs.k8s.io/gateway-api-inference-extension/apix/v1alpha2"
@@ -78,6 +79,10 @@ type LLMInferenceServiceSpec struct {
 	// It's optional for `LLMInferenceServiceConfig` kind.
 	// +optional
 	Model LLMModelSpec `json:"model"`
+
+	// StorageInitializer configuration for model artifact fetching.
+	// +optional
+	StorageInitializer *StorageInitializerSpec `json:"storageInitializer,omitempty"`
 
 	// WorkloadSpec configurations for the primary inference deployment.
 	// In a standard setup, this defines the main model server deployment.
@@ -164,6 +169,29 @@ type LoRASpec struct {
 	Adapters []LLMModelSpec `json:"adapters,omitempty"`
 }
 
+// StorageInitializerSpec defines the configuration for the storage initializer.
+// The storage initializer is an initContainer responsible for downloading model artifacts
+// from remote storage (s3://, hf://) before the main container starts.
+//
+// Example - Disable storage initializer:
+//
+//	storageInitializer:
+//	  enabled: false
+//
+// Example - Explicitly enable (same as default):
+//
+//	storageInitializer:
+//	  enabled: true
+type StorageInitializerSpec struct {
+	// Enabled controls whether the storage-initializer initContainer is created.
+	// When nil or true, storage-initializer is created for applicable URIs (s3://, hf://).
+	// When explicitly set to false, storage-initializer creation is skipped.
+	// This is useful when models are pre-loaded via alternative mechanisms (e.g., custom init containers, modelcars).
+	// Default: true (nil is treated as true for backward compatibility)
+	// +optional
+	Enabled *bool `json:"enabled,omitempty"`
+}
+
 // RouterSpec defines the routing configuration for exposing the service.
 // It supports Kubernetes Ingress and the Gateway API. The fields are mutually exclusive.
 type RouterSpec struct {
@@ -245,6 +273,17 @@ type SchedulerSpec struct {
 	// This configures the Endpoint Picker (EPP) Deployment.
 	// +optional
 	Template *corev1.PodSpec `json:"template,omitempty"`
+
+	// Config is the configuration for the EndpointPicker.
+	Config *SchedulerConfigSpec `json:"config,omitempty"`
+}
+
+type SchedulerConfigSpec struct {
+	// Inline EndpointPickerConfig
+	Inline *runtime.RawExtension `json:"inline,omitempty"`
+
+	// Ref is a reference to a ConfigMap key with EndpointPickerConfig.
+	Ref *corev1.ConfigMapKeySelector `json:"ref,omitempty"`
 }
 
 // InferencePoolSpec defines the configuration for an InferencePool.
