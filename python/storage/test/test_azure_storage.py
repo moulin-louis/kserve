@@ -385,9 +385,7 @@ def test_file_share_no_prefix(mock_storage, mock_get_access_key, mock_makedirs):
 
     # then
     mock_get_access_key.assert_called()
-    mock_storage.assert_called_with(
-        "https://accountname.file.core.windows.net", credential="some_token"
-    )
+    mock_storage.assert_called_with("https://accountname.file.core.windows.net", credential="some_token")
 
 
 @mock.patch(STORAGE_MODULE + ".os.makedirs")
@@ -403,9 +401,7 @@ def test_blob_allow_patterns(mock_storage, mock_makedirs):
     mock_blob, mock_container = create_mock_blob(mock_storage, paths)
 
     # when
-    Storage._download_azure_blob(
-        blob_path, "dest_path", allow_patterns=["*.safetensors", "*.json"]
-    )
+    Storage._download_azure_blob(blob_path, "dest_path", allow_patterns=["*.safetensors", "*.json"])
 
     # then
     arg_list = get_call_args(mock_container.get_blob_client.call_args_list)
@@ -458,9 +454,7 @@ def test_file_share_allow_patterns(mock_storage, mock_get_access_key, mock_maked
     )
 
     # when
-    Storage._download_azure_file_share(
-        file_share_path, "dest_path", allow_patterns=["*.safetensors", "*.json"]
-    )
+    Storage._download_azure_file_share(file_share_path, "dest_path", allow_patterns=["*.safetensors", "*.json"])
 
     # then
     arg_list = get_call_args(mock_file.get_file_client.call_args_list)
@@ -491,9 +485,7 @@ def test_file_share_ignore_patterns(mock_storage, mock_get_access_key, mock_make
     )
 
     # when
-    Storage._download_azure_file_share(
-        file_share_path, "dest_path", ignore_patterns=["*.bin"]
-    )
+    Storage._download_azure_file_share(file_share_path, "dest_path", ignore_patterns=["*.bin"])
 
     # then
     arg_list = get_call_args(mock_file.get_file_client.call_args_list)

@@ -1329,12 +1329,8 @@ class TestModelServerEventLoopWithDummy:
         # Patch to capture constructor and avoid side effects
         monkeypatch.setattr(model_server, "RESTServer", DummyREST)
         monkeypatch.setattr(model_server.asyncio, "run", Mock())
-        monkeypatch.setattr(
-            model_server.ModelServer, "setup_event_loop", lambda _: None
-        )
-        monkeypatch.setattr(
-            model_server.ModelServer, "register_signal_handler", lambda _: None
-        )
+        monkeypatch.setattr(model_server.ModelServer, "setup_event_loop", lambda _: None)
+        monkeypatch.setattr(model_server.ModelServer, "register_signal_handler", lambda _: None)
 
         ms = model_server.ModelServer(workers=1, event_loop="uvloop")
         m = DummyModel("TestModel")
@@ -1358,12 +1354,8 @@ class TestModelServerEventLoopWithDummy:
         # Patch multiprocess REST server and side effects
         monkeypatch.setattr(model_server, "RESTServerMultiProcess", DummyMulti)
         monkeypatch.setattr(model_server.asyncio, "run", Mock())
-        monkeypatch.setattr(
-            model_server.ModelServer, "setup_event_loop", lambda _: None
-        )
-        monkeypatch.setattr(
-            model_server.ModelServer, "register_signal_handler", lambda _: None
-        )
+        monkeypatch.setattr(model_server.ModelServer, "setup_event_loop", lambda _: None)
+        monkeypatch.setattr(model_server.ModelServer, "register_signal_handler", lambda _: None)
 
         ms = model_server.ModelServer(workers=4, event_loop="asyncio")
         m = DummyModel("TestModel")

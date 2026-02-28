@@ -176,9 +176,7 @@ class Storage(object):
             else:
                 if not os.path.exists(out_dir):
                     os.mkdir(out_dir)
-                model_dir = Storage._download_local(
-                    uri, out_dir, allow_patterns, ignore_patterns
-                )
+                model_dir = Storage._download_local(uri, out_dir, allow_patterns, ignore_patterns)
         else:
             if out_dir is None:
                 out_dir = tempfile.mkdtemp()
@@ -190,29 +188,17 @@ class Storage(object):
                 # serving mode. The model agent will download models.
                 model_dir = out_dir
             elif uri.startswith(_GCS_PREFIX):
-                model_dir = Storage._download_gcs(
-                    uri, out_dir, allow_patterns, ignore_patterns
-                )
+                model_dir = Storage._download_gcs(uri, out_dir, allow_patterns, ignore_patterns)
             elif uri.startswith(_S3_PREFIX):
-                model_dir = Storage._download_s3(
-                    uri, out_dir, allow_patterns, ignore_patterns
-                )
+                model_dir = Storage._download_s3(uri, out_dir, allow_patterns, ignore_patterns)
             elif uri.startswith(_HDFS_PREFIX) or uri.startswith(_WEBHDFS_PREFIX):
-                model_dir = Storage._download_hdfs(
-                    uri, out_dir, allow_patterns, ignore_patterns
-                )
+                model_dir = Storage._download_hdfs(uri, out_dir, allow_patterns, ignore_patterns)
             elif any(re.search(pattern, uri) for pattern in _AZURE_BLOB_RE):
-                model_dir = Storage._download_azure_blob(
-                    uri, out_dir, allow_patterns, ignore_patterns
-                )
+                model_dir = Storage._download_azure_blob(uri, out_dir, allow_patterns, ignore_patterns)
             elif any(re.search(pattern, uri) for pattern in _AZURE_FILE_RE):
-                model_dir = Storage._download_azure_file_share(
-                    uri, out_dir, allow_patterns, ignore_patterns
-                )
+                model_dir = Storage._download_azure_file_share(uri, out_dir, allow_patterns, ignore_patterns)
             elif uri.startswith(_HF_PREFIX):
-                model_dir = Storage._download_hf(
-                    uri, out_dir, allow_patterns, ignore_patterns
-                )
+                model_dir = Storage._download_hf(uri, out_dir, allow_patterns, ignore_patterns)
             elif re.search(_GIT_RE, uri):
                 model_dir = Storage._download_git_repo(uri, out_dir)
             # "catch-all" pattern, should always be last
@@ -442,9 +428,7 @@ class Storage(object):
                     target_key = obj.key.removeprefix(bucket_path).lstrip("/")
 
                 # Apply file filtering (skip for exact object match)
-                if not exact_obj_found and not _should_download(
-                    target_key, allow_patterns, ignore_patterns
-                ):
+                if not exact_obj_found and not _should_download(target_key, allow_patterns, ignore_patterns):
                     logger.info("Skipping %s due to file pattern filter", obj.key)
                     continue
 
@@ -467,14 +451,8 @@ class Storage(object):
 
         num_processes = min(_S3_MAX_FILE_CONCURRENCY, len(download_tasks))
 
-        with multiprocessing.Pool(
-            processes=num_processes, initializer=Storage._init_s3_worker
-        ) as pool:
-            results = list(
-                pool.imap_unordered(
-                    Storage._download_s3_object, download_tasks, chunksize=1
-                )
-            )
+        with multiprocessing.Pool(processes=num_processes, initializer=Storage._init_s3_worker) as pool:
+            results = list(pool.imap_unordered(Storage._download_s3_object, download_tasks, chunksize=1))
 
         # Process results and handle errors
         successful_downloads = []
@@ -521,28 +499,21 @@ class Storage(object):
         # Validate that the URI has two parts: repo and model (optional hash)
         if len(components) != 2:
             raise RuntimeError(
-                "Invalid Hugging Face URI format. Expected 'hf://owner/model[:revision]', got '%s'"
-                % uri
+                "Invalid Hugging Face URI format. Expected 'hf://owner/model[:revision]', got '%s'" % uri
             )
 
         repo = components[0]
         model_part = components[1]
 
         if not repo:
-            raise RuntimeError(
-                "Hugging Face repository owner cannot be empty in URI: %s" % uri
-            )
+            raise RuntimeError("Hugging Face repository owner cannot be empty in URI: %s" % uri)
         if not model_part:
-            raise RuntimeError(
-                "Hugging Face model name cannot be empty in URI: %s" % uri
-            )
+            raise RuntimeError("Hugging Face model name cannot be empty in URI: %s" % uri)
 
         model, _, hash_value = model_part.partition(":")
         # Ensure model is non-empty
         if not model:
-            raise RuntimeError(
-                "Hugging Face model name cannot be empty in URI: %s" % uri
-            )
+            raise RuntimeError("Hugging Face model name cannot be empty in URI: %s" % uri)
 
         revision = hash_value if hash_value else None
         repo_id = f"{repo}/{model}"
@@ -606,26 +577,15 @@ class Storage(object):
             else:
                 for blob in blobs:
                     # Replace any prefix from the object key with temp_dir
-                    subdir_object_key = blob.name.replace(bucket_path, "", 1).lstrip(
-                        "/"
-                    )
+                    subdir_object_key = blob.name.replace(bucket_path, "", 1).lstrip("/")
                     # Create necessary subdirectory to store the object locally
                     if "/" in subdir_object_key:
-                        local_object_dir = os.path.join(
-                            temp_dir, subdir_object_key.rsplit("/", 1)[0]
-                        )
+                        local_object_dir = os.path.join(temp_dir, subdir_object_key.rsplit("/", 1)[0])
                         if not os.path.isdir(local_object_dir):
                             os.makedirs(local_object_dir, exist_ok=True)
-                    if (
-                        subdir_object_key.strip() != ""
-                        and not subdir_object_key.endswith("/")
-                    ):
-                        if not _should_download(
-                            subdir_object_key, allow_patterns, ignore_patterns
-                        ):
-                            logger.info(
-                                "Skipping %s due to file pattern filter", blob.name
-                            )
+                    if subdir_object_key.strip() != "" and not subdir_object_key.endswith("/"):
+                        if not _should_download(subdir_object_key, allow_patterns, ignore_patterns):
+                            logger.info("Skipping %s due to file pattern filter", blob.name)
                             continue
                         dest_path = os.path.join(temp_dir, subdir_object_key)
                         logger.info("Downloading: %s", dest_path)
@@ -761,9 +721,7 @@ class Storage(object):
                     if not _should_download(f, allow_patterns, ignore_patterns):
                         logger.info("Skipping %s due to file pattern filter", f)
                         continue
-                    client.download(
-                        f"{path}/{f}", out_dir, n_threads=int(config["N_THREADS"])
-                    )
+                    client.download(f"{path}/{f}", out_dir, n_threads=int(config["N_THREADS"]))
                     file_count += 1
                     dest_file_path = f"{out_dir}/{f}"
         except (HdfsError, requests.exceptions.ConnectionError) as e:
@@ -806,12 +764,8 @@ class Storage(object):
         file_semaphore = asyncio.Semaphore(_AZURE_MAX_FILE_CONCURRENCY)
 
         try:
-            async with BlobServiceClient(
-                account_url, credential=token
-            ) as blob_service_client:
-                container_client = blob_service_client.get_container_client(
-                    container_name
-                )
+            async with BlobServiceClient(account_url, credential=token) as blob_service_client:
+                container_client = blob_service_client.get_container_client(container_name)
 
                 # Get all blobs using flat listing (no delimiter) to get all files regardless of hierarchy
                 blobs = []
@@ -822,25 +776,17 @@ class Storage(object):
                         relative_path = blob.name.replace(prefix, "", 1).lstrip("/")
                         if not relative_path:
                             relative_path = os.path.basename(prefix)
-                        if not _should_download(
-                            relative_path, allow_patterns, ignore_patterns
-                        ):
-                            logger.info(
-                                "Skipping %s due to file pattern filter", blob.name
-                            )
+                        if not _should_download(relative_path, allow_patterns, ignore_patterns):
+                            logger.info("Skipping %s due to file pattern filter", blob.name)
                             continue
                         blobs.append(blob)
 
                 if not blobs:
-                    raise RuntimeError(
-                        "Failed to fetch model. No model found in %s." % uri
-                    )
+                    raise RuntimeError("Failed to fetch model. No model found in %s." % uri)
 
                 # Create download tasks with semaphore control
                 download_tasks = [
-                    Storage._download_single_blob_async(
-                        container_client, blob, out_dir, prefix, file_semaphore
-                    )
+                    Storage._download_single_blob_async(container_client, blob, out_dir, prefix, file_semaphore)
                     for blob in blobs
                 ]
 
@@ -929,9 +875,7 @@ class Storage(object):
             logger.warning("Azure storage access key not found, retrying anonymous access")
 
         try:
-            share_service_client = ShareServiceClient(
-                account_url, credential=access_key
-            )
+            share_service_client = ShareServiceClient(account_url, credential=access_key)
             share_client = share_service_client.get_share_client(share_name)
             file_count = 0
             share_files = []
@@ -941,13 +885,9 @@ class Storage(object):
                 curr_prefix, depth = stack.pop()
                 if depth < 0:
                     continue
-                for item in share_client.list_directories_and_files(
-                    directory_name=curr_prefix
-                ):
+                for item in share_client.list_directories_and_files(directory_name=curr_prefix):
                     if item.is_directory:
-                        stack.append(
-                            ("/".join([curr_prefix, item.name]).strip("/"), depth - 1)
-                        )
+                        stack.append(("/".join([curr_prefix, item.name]).strip("/"), depth - 1))
                     else:
                         share_files.append((curr_prefix, item))
             for prefix, file_item in share_files:
@@ -990,11 +930,7 @@ class Storage(object):
         ignore_patterns: Optional[List[str]] = None,
     ) -> str:
         """Wrapper to run async blob download"""
-        return asyncio.run(
-            Storage._download_azure_blob_async(
-                uri, out_dir, allow_patterns, ignore_patterns
-            )
-        )
+        return asyncio.run(Storage._download_azure_blob_async(uri, out_dir, allow_patterns, ignore_patterns))
 
     @staticmethod
     def _parse_azure_uri(uri):  # pylint: disable=too-many-locals

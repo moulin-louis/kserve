@@ -406,15 +406,11 @@ class KServeClient(object):
             if expected_generation is None:
                 raise RuntimeError(
                     "Timeout to start the InferenceService {}. \
-                               The InferenceService is as following: {}".format(
-                        name, current_isvc
-                    )
+                               The InferenceService is as following: {}".format(name, current_isvc)
                 )
             raise RuntimeError(
                 "Timeout to start the InferenceService {} for expected generation {}. \
-                               The InferenceService is as following: {}".format(
-                    name, expected_generation, current_isvc
-                )
+                               The InferenceService is as following: {}".format(name, expected_generation, current_isvc)
             )
 
     def create_trained_model(self, trainedmodel, namespace):

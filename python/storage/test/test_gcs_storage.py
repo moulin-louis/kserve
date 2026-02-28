@@ -174,9 +174,7 @@ def test_gcs_allow_patterns(mock_client):
     ]
     mock_client.return_value.bucket.return_value = mock_bucket
 
-    Storage._download_gcs(
-        gcs_path, "/tmp/dest", allow_patterns=["*.safetensors", "*.json"]
-    )
+    Storage._download_gcs(gcs_path, "/tmp/dest", allow_patterns=["*.safetensors", "*.json"])
 
     # safetensors and json should be downloaded, bin should not
     assert mock_safetensors.download_to_filename.called
