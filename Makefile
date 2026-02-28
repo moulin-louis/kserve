@@ -59,7 +59,7 @@ tidy:
 
 .PHONY: sync-deps
 sync-deps:
-	@@python3 hack/setup/scripts/generate-versions-from-gomod.py
+	@@python3 hack/setup/scripts/generate-versions-from-gomod.py --no-cache
 
 .PHONY: sync-img-env
 sync-img-env:
@@ -68,8 +68,8 @@ sync-img-env:
 go-lint: golangci-lint
 	@$(GOLANGCI_LINT) run --fix
 
-py-lint: $(FLAKE8_LINT)
-	$(FLAKE8_LINT) --config=.flake8 .
+py-lint: $(RUFF)
+	$(RUFF) check --config ruff.toml 
 
 validate-infra-scripts:
 	@python3 hack/setup/scripts/validate-install-scripts.py
