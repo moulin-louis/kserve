@@ -44,6 +44,33 @@ ignore-packages = [
 ]
 allow-only = "Apache Software License;MIT License;BSD License;Mozilla Public License 2.0 (MPL 2.0);Python Software Foundation License;CMU License (MIT-CMU);The Unlicense (Unlicense);ISC License (ISCL);GNU Lesser General Public License v2 (LGPLv2);GNU General Public License (GPL);Historical Permission Notice and Disclaimer (HPND);"
 
+[dependency-groups]
+test = [
+    # core
+    "pytest>=7.4.4,<8.0.0",
+    "pytest-cov>=5.0.0,<6.0.0",
+    "pytest-xdist>=3.0.2,<4.0.0",
+    "pytest-asyncio>=0.23.4,<1.0.0",
+    "pytest-httpx>=0.30.0,<1.0.0",
+    "mypy>=0.991,<1.0",
+    # kserve
+    "portforward>=0.6.2,<1.0.0",
+    "avro>=1.11.0,<2.0.0",
+    "tomlkit>=0.12.0,<1.0.0",
+    "jinja2>=3.1.4,<4.0.0",
+    "grpcio-testing>=1.73.0,<2.0.0",
+    "httpx-retries>=0.4.5,<1.0.0",
+    # huggingfaceserver
+    "einops>=0.8.0,<1.0.0",
+    "openai>=1.59.9,<2.0.0",
+    # xgbserver
+    "scikit-learn~=1.5.1",
+    # paddleserver
+    "opencv-python>=4.10.0,<5.0.0",
+    "xgboost>=2.1.4",
+    "ray[serve]>=2.54.0",
+]
+
 [tool.uv.workspace]
 members = [
     "kserve",

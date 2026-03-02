@@ -16,15 +16,6 @@ version = "0.16.0"
 description = "Model Server implementation for AI Robustness Toolbox. Not intended for use outside KServe Frameworks Images."
 readme = "README.md"
 
-[dependency-groups]
-test = [
-    "pytest<8.0.0,>=7.4.4",
-    "pytest-cov<6.0.0,>=5.0.0",
-    "mypy<1.0,>=0.991",
-]
-dev = [
-    "black[colorama]~=24.3.0",
-]
 
 [tool.uv.sources]
 kserve = { workspace = true }
