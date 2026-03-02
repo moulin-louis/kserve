@@ -68,7 +68,7 @@ test = [
     # paddleserver
     "opencv-python>=4.10.0,<5.0.0",
     "xgboost>=2.1.4",
-    "ray[serve]>=2.54.0",
+    "ray[serve]>=2.43.0",
 ]
 
 [tool.uv.workspace]
