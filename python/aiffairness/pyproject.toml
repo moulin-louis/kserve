@@ -5,7 +5,7 @@ authors = [
 license = {text = "Apache-2.0"}
 requires-python = "<3.14,>=3.10"
 dependencies = [
-    "kserve @ file:///${PROJECT_ROOT}/../kserve",
+    "kserve>=0.16.0",
     "aif360<1.0.0,>=0.6.1",
     "nest-asyncio<2.0.0,>=1.5.8",
     "requests[security]<3.0.0,>=2.24.0",
@@ -27,3 +27,6 @@ test = [
 dev = [
     "black[colorama]~=24.3.0",
 ]
+
+[tool.uv.sources]
+kserve = { workspace = true }

@@ -29,11 +29,11 @@ dev = [
 ]
 
 [tool.uv.sources]
-kserve = { path = "../kserve", editable = false }
-kserve-storage = { path = "../storage", editable = false }
-sklearnserver = { path = "../sklearnserver", editable = false }
-xgbserver = { path = "../xgbserver", editable = false }
-lgbserver = { path = "../lgbserver", editable = false }
+kserve = { workspace = true }
+kserve-storage = { workspace = true }
+sklearnserver = { workspace = true }
+xgbserver = { workspace = true }
+lgbserver = { workspace = true }
 
 [build-system]
 requires = ["hatchling"]

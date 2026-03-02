@@ -5,7 +5,7 @@ authors = [
 license = {text = "Apache-2.0"}
 requires-python = "<3.13,>=3.10"
 dependencies = [
-    "kserve @ file:///${PROJECT_ROOT}/../kserve",
+    "kserve>=0.16.0",
 ]
 name = "custom_tokenizer"
 version = "0.16.0"
@@ -19,3 +19,6 @@ test = [
 dev = [
     "black[colorama]~=24.3.0",
 ]
+
+[tool.uv.sources]
+kserve = { workspace = true }

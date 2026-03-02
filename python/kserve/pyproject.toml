@@ -67,7 +67,7 @@ ray = [
     "ray[serve]>=2.43.0",
 ]
 llm = [
-    "vllm==0.15.1",
+    "vllm==0.15.1; sys_platform == 'linux'",
 ]
 
 [dependency-groups]
@@ -89,11 +89,8 @@ dev = [
     "black[colorama]~=24.3.0",
 ]
 
-[tool.uv]
-# TODO remove later
-index-url = "https://test.pypi.org/simple/"
-extra-index-url = ["https://pypi.org/simple"]
-index-strategy = "unsafe-best-match"
+[tool.uv.sources]
+kserve-storage = { workspace = true }
 
 [build-system]
 requires = ["setuptools>=61.0"]

@@ -43,3 +43,19 @@ ignore-packages = [
   "umf", "tcmlib"
 ]
 allow-only = "Apache Software License;MIT License;BSD License;Mozilla Public License 2.0 (MPL 2.0);Python Software Foundation License;CMU License (MIT-CMU);The Unlicense (Unlicense);ISC License (ISCL);GNU Lesser General Public License v2 (LGPLv2);GNU General Public License (GPL);Historical Permission Notice and Disclaimer (HPND);"
+
+[tool.uv.workspace]
+members = [
+    "kserve",
+    "storage",
+    "huggingfaceserver",
+    "sklearnserver",
+    "xgbserver",
+    "lgbserver",
+    "paddleserver",
+    "pmmlserver",
+    "artexplainer",
+    "aiffairness",
+    "predictiveserver",
+    "custom_tokenizer",
+]
