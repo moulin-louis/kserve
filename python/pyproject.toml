@@ -44,6 +44,20 @@ ignore-packages = [
 ]
 allow-only = "Apache Software License;MIT License;BSD License;Mozilla Public License 2.0 (MPL 2.0);Python Software Foundation License;CMU License (MIT-CMU);The Unlicense (Unlicense);ISC License (ISCL);GNU Lesser General Public License v2 (LGPLv2);GNU General Public License (GPL);Historical Permission Notice and Disclaimer (HPND);"
 
+[tool.pytest.ini_options]
+asyncio_mode = "strict"
+testpaths = [
+    "kserve/test",
+    "storage/test",
+    "huggingfaceserver",
+    "huggingfaceserver/tests",
+    "sklearnserver/sklearnserver",
+    "xgbserver/xgbserver",
+    "lgbserver/lgbserver",
+    "paddleserver/paddleserver",
+    "pmmlserver/pmmlserver",
+]
+
 [dependency-groups]
 test = [
     # core
