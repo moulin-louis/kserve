@@ -13,4 +13,4 @@ description = "Custom Tokenizer Examples. Not intended for use outside KServe Fr
 
 
 [tool.uv.sources]
-kserve = { workspace = true }
+kserve = { path = "../kserve" }

@@ -11,7 +11,6 @@ resolution-markers = [
 members = [
     "aifserver",
     "artserver",
-    "custom-tokenizer",
     "huggingfaceserver",
     "kserve",
     "kserve-storage",
@@ -990,17 +989,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/38/ca/b93ef9fca1471a65f136a73e10819634c0b83427362fc08fc9f29f935bf0/cupy_cuda12x-14.0.1-cp312-cp312-manylinux2014_aarch64.whl", hash = "sha256:f244bc14fad6f1ef0c74abd98afa4b82d2534aecdba911197810ec0047f0d1f3", size = 145578614, upload-time = "2026-02-20T10:22:49.108Z" },
     { url = "https://files.pythonhosted.org/packages/5a/a6/944406223a190815d9df156a1d66f3b0352bd8827dc4a8c752196d616dbc/cupy_cuda12x-14.0.1-cp312-cp312-manylinux2014_x86_64.whl", hash = "sha256:9f0c81c3509f77be3ae8444759d5b314201b2dfcbbf2ae0d0b5fb7a61f20893c", size = 134613763, upload-time = "2026-02-20T10:22:56.792Z" },
 ]
-
-[[package]]
-name = "custom-tokenizer"
-version = "0.16.0"
-source = { virtual = "custom_tokenizer" }
-dependencies = [
-    { name = "kserve" },
-]
-
-[package.metadata]
-requires-dist = [{ name = "kserve", editable = "kserve" }]
 
 [[package]]
 name = "cycler"

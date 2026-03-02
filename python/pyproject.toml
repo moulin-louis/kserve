@@ -98,5 +98,4 @@ members = [
     "artexplainer",
     "aiffairness",
     "predictiveserver",
-    "custom_tokenizer",
 ]
