@@ -66,20 +66,31 @@ ENV PATH="${WORKSPACE_DIR}/${VENV_PATH}/bin:$PATH"
 
 # From this point, all Python packages will be installed in the virtual environment and copied to the final image
 
-COPY kserve/pyproject.toml kserve/uv.lock kserve/
-RUN --mount=type=cache,target=/root/.cache/uv cd kserve && uv sync --active --no-cache
-COPY kserve kserve  
-RUN --mount=type=cache,target=/root/.cache/uv cd kserve && uv sync --active --no-cache
+# Copy workspace manifests for dependency resolution
+COPY pyproject.toml uv.lock ./
+COPY kserve/pyproject.toml kserve/
+COPY storage/pyproject.toml storage/
+COPY huggingfaceserver/pyproject.toml huggingfaceserver/
+COPY sklearnserver/pyproject.toml sklearnserver/
+COPY xgbserver/pyproject.toml xgbserver/
+COPY lgbserver/pyproject.toml lgbserver/
+COPY paddleserver/pyproject.toml paddleserver/
+COPY pmmlserver/pyproject.toml pmmlserver/
+COPY artexplainer/pyproject.toml artexplainer/
+COPY aiffairness/pyproject.toml aiffairness/
+COPY predictiveserver/pyproject.toml predictiveserver/
+COPY huggingfaceserver/health_check.py huggingfaceserver/
 
-COPY storage/pyproject.toml storage/uv.lock storage/
-RUN --mount=type=cache,target=/root/.cache/uv cd storage && uv sync --active --no-cache
+# Install external dependencies (cache layer)
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --package huggingfaceserver --no-install-workspace --active --no-cache
+
+# Copy source and install workspace packages
+COPY kserve kserve
 COPY storage storage
-RUN --mount=type=cache,target=/root/.cache/uv cd storage && uv pip install . --no-cache
-
-COPY huggingfaceserver/pyproject.toml huggingfaceserver/uv.lock huggingfaceserver/health_check.py huggingfaceserver/
-RUN --mount=type=cache,target=/root/.cache/uv cd huggingfaceserver && uv sync --active --no-cache
 COPY huggingfaceserver huggingfaceserver
-RUN --mount=type=cache,target=/root/.cache/uv cd huggingfaceserver && uv sync --active --no-cache
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --package huggingfaceserver --active --no-cache
 
 # Install vllm
 # https://docs.vllm.ai/en/latest/models/extensions/runai_model_streamer.html, https://docs.vllm.ai/en/latest/models/extensions/tensorizer.html
@@ -102,7 +113,6 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     flashinfer show-config
 
 # Generate third-party licenses
-COPY pyproject.toml pyproject.toml
 COPY third_party/pip-licenses.py pip-licenses.py
 RUN mkdir -p third_party/library && python3 pip-licenses.py
 

@@ -28,31 +28,31 @@ ENV VIRTUAL_ENV=${VENV_PATH}
 RUN uv venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
-# Install dependencies for kserve using uv
-COPY kserve/pyproject.toml kserve/uv.lock kserve/
-RUN cd kserve && uv sync --active --no-cache
+# Copy workspace manifests for dependency resolution
+COPY pyproject.toml uv.lock ./
+COPY kserve/pyproject.toml kserve/
+COPY storage/pyproject.toml storage/
+COPY huggingfaceserver/pyproject.toml huggingfaceserver/
+COPY sklearnserver/pyproject.toml sklearnserver/
+COPY xgbserver/pyproject.toml xgbserver/
+COPY lgbserver/pyproject.toml lgbserver/
+COPY paddleserver/pyproject.toml paddleserver/
+COPY pmmlserver/pyproject.toml pmmlserver/
+COPY artexplainer/pyproject.toml artexplainer/
+COPY aiffairness/pyproject.toml aiffairness/
+COPY predictiveserver/pyproject.toml predictiveserver/
 
+# Install external dependencies (cache layer)
+RUN uv sync --package pmmlserver --no-install-workspace --active --no-cache
+
+# Copy source and install workspace packages
 COPY kserve kserve
-RUN cd kserve && uv sync --active --no-cache
-
-# Copy and install dependencies for kserve-storage using uv
-COPY storage/pyproject.toml storage/uv.lock storage/
-RUN cd storage && uv sync --active --no-cache
-
 COPY storage storage
-RUN cd storage && uv pip install . --no-cache
-
-# Install dependencies for pmmlserver using uv
-COPY pmmlserver/pyproject.toml pmmlserver/uv.lock pmmlserver/
-RUN cd pmmlserver && uv sync --active --no-cache
-
 COPY pmmlserver pmmlserver
-RUN cd pmmlserver && uv sync --active --no-cache
+RUN uv sync --package pmmlserver --active --no-cache
 
 # Generate third-party licenses
-COPY pyproject.toml pyproject.toml
 COPY third_party/pip-licenses.py pip-licenses.py
-# TODO: Remove this when upgrading to python 3.11+
 RUN uv pip install --no-cache-dir tomli
 RUN mkdir -p third_party/library && python3 pip-licenses.py
 

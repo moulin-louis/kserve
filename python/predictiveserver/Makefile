@@ -1,19 +1,13 @@
-.PHONY: dev_install install_dependencies test type_check format clean
+.PHONY: dev_install test type_check clean
 
 dev_install:
-	uv sync --active --group test --group dev
-
-install_dependencies:
-	uv sync --active --group test
+	uv sync --group test
 
 test: type_check
 	pytest -W ignore
 
 type_check:
-	mypy --ignore-missing-imports aiserver
-
-format:
-	black aiserver/
+	mypy --ignore-missing-imports predictiveserver
 
 clean:
 	rm -rf __pycache__

@@ -1,11 +1,8 @@
 dev_install:
-	uv sync --active --group test
+	uv sync --group test
 
-install_dependencies:
-	uv sync --active --group test
-
-test:
-	pytest
+test: type_check
+	pytest -W ignore
 
 type_check:
 	mypy --ignore-missing-imports paddleserver

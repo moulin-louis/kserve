@@ -54,28 +54,38 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 ARG TORCH_EXTRA_INDEX_URL="https://download.pytorch.org/whl/cpu"
 ARG TORCH_VERSION=2.10.0
 
-# Install kserve using UV
-COPY kserve kserve
-RUN cd kserve && \
-    uv sync --active --no-cache && \
+# Copy workspace manifests for dependency resolution
+COPY pyproject.toml uv.lock ./
+COPY kserve/pyproject.toml kserve/
+COPY storage/pyproject.toml storage/
+COPY huggingfaceserver/pyproject.toml huggingfaceserver/
+COPY sklearnserver/pyproject.toml sklearnserver/
+COPY xgbserver/pyproject.toml xgbserver/
+COPY lgbserver/pyproject.toml lgbserver/
+COPY paddleserver/pyproject.toml paddleserver/
+COPY pmmlserver/pyproject.toml pmmlserver/
+COPY artexplainer/pyproject.toml artexplainer/
+COPY aiffairness/pyproject.toml aiffairness/
+COPY predictiveserver/pyproject.toml predictiveserver/
+
+# Install external dependencies (cache layer)
+RUN uv sync --package huggingfaceserver --no-install-workspace --active --no-cache && \
     uv cache clean && \
     rm -rf ~/.cache/uv
 
- # Copy and install dependencies for kserve-storage using uv
-COPY storage/pyproject.toml storage/uv.lock storage/
-RUN cd storage && uv sync --active --no-cache
-
+# Copy source and install workspace packages
+COPY kserve kserve
 COPY storage storage
-RUN cd storage && uv pip install . --no-cache  
-
-# Install huggingfaceserver using UV
 COPY huggingfaceserver huggingfaceserver
-RUN cd huggingfaceserver && \
-    uv pip install --no-cache-dir --index-url ${TORCH_EXTRA_INDEX_URL} \
+RUN uv sync --package huggingfaceserver --active --no-cache && \
+    uv cache clean && \
+    rm -rf ~/.cache/uv
+
+# Install CPU torch (override GPU torch installed by huggingfaceserver deps)
+RUN uv pip install --no-cache-dir --index-url ${TORCH_EXTRA_INDEX_URL} \
         torch==${TORCH_VERSION} \
         torchvision \
         torchaudio && \
-    uv sync --active --no-cache && \
     uv cache clean && \
     rm -rf ~/.cache/uv
 
@@ -113,9 +123,7 @@ RUN rm -rf /vllm /root/.cache/uv /root/.cache/pip /tmp/*
 RUN df -hT
 
 # Generate third-party licenses
-COPY pyproject.toml pyproject.toml
 COPY third_party/pip-licenses.py pip-licenses.py
-# TODO: Remove this when upgrading to python 3.11+
 RUN pip install --no-cache-dir tomli
 RUN mkdir -p third_party/library && python3 pip-licenses.py
 

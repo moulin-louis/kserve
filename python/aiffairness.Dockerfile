@@ -18,25 +18,31 @@ ENV VIRTUAL_ENV=${VENV_PATH}
 RUN uv venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
-# ------------------ Install kserve dependencies ------------------
-COPY kserve/pyproject.toml kserve/uv.lock kserve/
-RUN cd kserve && uv sync --active --no-cache
+# Copy workspace manifests for dependency resolution
+COPY pyproject.toml uv.lock ./
+COPY kserve/pyproject.toml kserve/
+COPY storage/pyproject.toml storage/
+COPY huggingfaceserver/pyproject.toml huggingfaceserver/
+COPY sklearnserver/pyproject.toml sklearnserver/
+COPY xgbserver/pyproject.toml xgbserver/
+COPY lgbserver/pyproject.toml lgbserver/
+COPY paddleserver/pyproject.toml paddleserver/
+COPY pmmlserver/pyproject.toml pmmlserver/
+COPY artexplainer/pyproject.toml artexplainer/
+COPY aiffairness/pyproject.toml aiffairness/
+COPY predictiveserver/pyproject.toml predictiveserver/
 
-# Copy source code separately (better Docker caching)
+# Install external dependencies (cache layer)
+RUN uv sync --package aifserver --no-install-workspace --active --no-cache
+
+# Copy source and install workspace packages
 COPY kserve kserve
-RUN cd kserve && uv sync --active --no-cache
-
-# ------------------ Install aiffairness dependencies ------------------
-COPY aiffairness/pyproject.toml aiffairness/uv.lock aiffairness/
-RUN cd aiffairness && uv sync --active --no-cache
-
+COPY storage storage
 COPY aiffairness aiffairness
-RUN cd aiffairness && uv sync --active --no-cache
+RUN uv sync --package aifserver --active --no-cache
 
 # Generate third-party licenses
-COPY pyproject.toml pyproject.toml
 COPY third_party/pip-licenses.py pip-licenses.py
-# TODO: Remove this when upgrading to python 3.11+
 RUN pip install --no-cache-dir tomli
 RUN mkdir -p third_party/library && python3 pip-licenses.py
 
@@ -54,6 +60,7 @@ RUN useradd kserve -m -u 1000 -d /home/kserve
 COPY --from=builder --chown=kserve:kserve third_party third_party
 COPY --from=builder --chown=kserve:kserve $VIRTUAL_ENV $VIRTUAL_ENV
 COPY --from=builder kserve kserve
+COPY --from=builder storage storage
 COPY --from=builder aiffairness aiffairness
 
 USER 1000

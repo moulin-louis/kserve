@@ -17,12 +17,26 @@ ENV VIRTUAL_ENV=${VENV_PATH}
 RUN uv venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
-# Install Python dependencies
-COPY storage/pyproject.toml storage/uv.lock storage/
-RUN cd storage && uv sync --active --no-cache 
+# Copy workspace manifests for dependency resolution
+COPY pyproject.toml uv.lock ./
+COPY kserve/pyproject.toml kserve/
+COPY storage/pyproject.toml storage/
+COPY huggingfaceserver/pyproject.toml huggingfaceserver/
+COPY sklearnserver/pyproject.toml sklearnserver/
+COPY xgbserver/pyproject.toml xgbserver/
+COPY lgbserver/pyproject.toml lgbserver/
+COPY paddleserver/pyproject.toml paddleserver/
+COPY pmmlserver/pyproject.toml pmmlserver/
+COPY artexplainer/pyproject.toml artexplainer/
+COPY aiffairness/pyproject.toml aiffairness/
+COPY predictiveserver/pyproject.toml predictiveserver/
 
+# Install external dependencies (cache layer)
+RUN uv sync --package kserve-storage --no-install-workspace --active --no-cache
+
+# Copy source and install workspace packages
 COPY storage storage
-RUN cd storage && uv pip install . --no-cache 
+RUN uv sync --package kserve-storage --active --no-cache
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -39,9 +53,7 @@ RUN uv pip install --no-cache \
     requests-kerberos==0.14.0
 
 # Generate third-party licenses
-COPY pyproject.toml pyproject.toml
 COPY third_party/pip-licenses.py pip-licenses.py
-# TODO: Remove this when upgrading to python 3.11+
 RUN pip install --no-cache-dir tomli
 RUN mkdir -p third_party/library && python3 pip-licenses.py
 

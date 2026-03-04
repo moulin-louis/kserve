@@ -21,22 +21,34 @@ ENV VIRTUAL_ENV=${VENV_PATH}
 RUN uv venv --python python3.11 $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
-# ========== Copy all source code first ==========
+# Copy workspace manifests for dependency resolution
+COPY pyproject.toml uv.lock ./
+COPY kserve/pyproject.toml kserve/
+COPY storage/pyproject.toml storage/
+COPY huggingfaceserver/pyproject.toml huggingfaceserver/
+COPY sklearnserver/pyproject.toml sklearnserver/
+COPY xgbserver/pyproject.toml xgbserver/
+COPY lgbserver/pyproject.toml lgbserver/
+COPY paddleserver/pyproject.toml paddleserver/
+COPY pmmlserver/pyproject.toml pmmlserver/
+COPY artexplainer/pyproject.toml artexplainer/
+COPY aiffairness/pyproject.toml aiffairness/
+COPY predictiveserver/pyproject.toml predictiveserver/
+
+# Install external dependencies (cache layer)
+RUN uv sync --package predictiveserver --no-install-workspace --active --no-cache
+
+# Copy source and install workspace packages
 COPY kserve kserve
 COPY storage storage
 COPY sklearnserver sklearnserver
 COPY xgbserver xgbserver
 COPY lgbserver lgbserver
 COPY predictiveserver predictiveserver
-
-# ========== Install everything through predictiveserver ==========
-# predictiveserver depends on all other packages, so installing it will install everything
-RUN cd predictiveserver && uv pip install --no-cache .
+RUN uv sync --package predictiveserver --active --no-cache
 
 # Generate third-party licenses
-COPY pyproject.toml pyproject.toml
 COPY third_party third_party
-# TODO: Remove this when upgrading to python 3.11+
 RUN pip install --no-cache-dir tomli
 RUN mkdir -p third_party/library && python3 third_party/pip-licenses.py
 
