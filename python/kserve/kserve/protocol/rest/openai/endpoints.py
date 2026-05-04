@@ -90,7 +90,9 @@ class OpenAIEndpoints:
             response=response,
         )
         if isinstance(completion, ErrorResponse):
-            return ORJSONResponse(content=completion.model_dump(), status_code=int(completion.error.code))
+            return ORJSONResponse(
+                content=completion.model_dump(), status_code=int(completion.error.code)
+            )
         elif isinstance(completion, AsyncGenerator):
             return StreamingResponse(completion, media_type="text/event-stream")
         else:
@@ -133,7 +135,9 @@ class OpenAIEndpoints:
             response=response,
         )
         if isinstance(completion, ErrorResponse):
-            return ORJSONResponse(content=completion.model_dump(), status_code=int(completion.error.code))
+            return ORJSONResponse(
+                content=completion.model_dump(), status_code=int(completion.error.code)
+            )
         elif isinstance(completion, AsyncGenerator):
             return StreamingResponse(completion, media_type="text/event-stream")
         else:
@@ -173,7 +177,9 @@ class OpenAIEndpoints:
             response=response,
         )
         if isinstance(embedding, ErrorResponse):
-            return ORJSONResponse(content=embedding.model_dump(), status_code=int(embedding.error.code))
+            return ORJSONResponse(
+                content=embedding.model_dump(), status_code=int(embedding.error.code)
+            )
         elif isinstance(embedding, AsyncGenerator):
             return StreamingResponse(embedding, media_type="text/event-stream")
         else:
@@ -212,7 +218,9 @@ class OpenAIEndpoints:
             response=response,
         )
         if isinstance(rerank, ErrorResponse):
-            return ORJSONResponse(content=rerank.model_dump(), status_code=int(rerank.error.code))
+            return ORJSONResponse(
+                content=rerank.model_dump(), status_code=int(rerank.error.code)
+            )
         elif isinstance(rerank, AsyncGenerator):
             return StreamingResponse(rerank, media_type="text/event-stream")
         else:
@@ -232,7 +240,12 @@ class OpenAIEndpoints:
         models = await self.dataplane.models()
         return ModelList(
             object="list",
-            data=[Model(object="model", id=model.name, created=self.start_time, owned_by="") for model in models],
+            data=[
+                Model(
+                    object="model", id=model.name, created=self.start_time, owned_by=""
+                )
+                for model in models
+            ],
         )
 
     async def health(self, model_name: str):
@@ -280,6 +293,8 @@ def register_openai_endpoints(app: FastAPI, dataplane: OpenAIDataPlane):
         endpoints.models,
         methods=["GET"],
     )
-    openai_router.add_api_route(r"/v1/models/{model_name}", endpoints.health, methods=["GET"])
+    openai_router.add_api_route(
+        r"/v1/models/{model_name}", endpoints.health, methods=["GET"]
+    )
     app.include_router(openai_router)
     app.add_exception_handler(OpenAIError, openai_error_handler)

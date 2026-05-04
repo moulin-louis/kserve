@@ -198,7 +198,9 @@ class InferInput:
         return self._parameters
 
     @parameters.setter
-    def parameters(self, params: Optional[Union[Dict, MessageMap[str, InferParameter]]]):
+    def parameters(
+        self, params: Optional[Union[Dict, MessageMap[str, InferParameter]]]
+    ):
         """Set the parameters of the inference input associated with this object.
 
         Args:
@@ -274,7 +276,9 @@ class InferInput:
         dtype = from_np_dtype(input_tensor.dtype)
         if self._datatype != dtype:
             raise InferenceError(
-                "got unexpected datatype {} from numpy array, expected {}".format(dtype, self._datatype)
+                "got unexpected datatype {} from numpy array, expected {}".format(
+                    dtype, self._datatype
+                )
             )
         valid_shape = True
         if len(self._shape) != len(input_tensor.shape):
@@ -298,7 +302,9 @@ class InferInput:
                 self._data = []
                 try:
                     if input_tensor.size > 0:
-                        for obj in np.nditer(input_tensor, flags=["refs_ok"], order="C"):
+                        for obj in np.nditer(
+                            input_tensor, flags=["refs_ok"], order="C"
+                        ):
                             # We need to convert the object to string using utf-8,
                             # if we want to use the binary_data=False. JSON requires
                             # the input to be a UTF-8 string.
@@ -431,7 +437,9 @@ class RequestedOutput:
         return self._parameters
 
     @parameters.setter
-    def parameters(self, params: Optional[Union[Dict, MessageMap[str, InferParameter]]]):
+    def parameters(
+        self, params: Optional[Union[Dict, MessageMap[str, InferParameter]]]
+    ):
         """Set the parameters of the inference input associated with this object.
 
         Args:
@@ -553,14 +561,20 @@ class InferRequest:
                 shape=list(input_tensor.shape),
                 datatype=input_tensor.datatype,
                 data=get_content(input_tensor.datatype, input_tensor.contents),
-                parameters=(to_http_parameters(input_tensor.parameters) if input_tensor.parameters else None),
+                parameters=(
+                    to_http_parameters(input_tensor.parameters)
+                    if input_tensor.parameters
+                    else None
+                ),
             )
             for input_tensor in request.inputs
         ]
         request_outputs = [
             RequestedOutput(
                 name=output.name,
-                parameters=(to_http_parameters(output.parameters) if output.parameters else None),
+                parameters=(
+                    to_http_parameters(output.parameters) if output.parameters else None
+                ),
             )
             for output in request.outputs
         ]
@@ -576,7 +590,9 @@ class InferRequest:
         )
 
     @classmethod
-    def from_bytes(cls, req_bytes: bytes, json_length: int, model_name: str) -> "InferRequest":
+    def from_bytes(
+        cls, req_bytes: bytes, json_length: int, model_name: str
+    ) -> "InferRequest":
         """The class method to construct the InferRequest object from REST raw request bytes.
 
         Args:
@@ -622,10 +638,14 @@ class InferRequest:
                     )
                 end_index = start_index + binary_data_size
                 infer_input._raw_data = req_bytes[start_index:end_index]
-                infer_input.set_data_from_numpy(infer_input.as_numpy(), binary_data=False)
+                infer_input.set_data_from_numpy(
+                    infer_input.as_numpy(), binary_data=False
+                )
                 start_index = end_index
             else:
-                raise InvalidInput(f"'data' field is missing for input '{infer_input.name}' for model '{model_name}'")
+                raise InvalidInput(
+                    f"'data' field is missing for input '{infer_input.name}' for model '{model_name}'"
+                )
             infer_inputs.append(infer_input)
         requested_outputs = None
         if infer_req_dict.get("outputs", None) is not None:
@@ -645,7 +665,9 @@ class InferRequest:
         )
 
     @classmethod
-    def from_inference_request(cls, request: InferenceRequest, model_name: str) -> "InferRequest":
+    def from_inference_request(
+        cls, request: InferenceRequest, model_name: str
+    ) -> "InferRequest":
         """The class method to construct the InferRequest object from InferenceRequest object.
 
         Args:
@@ -669,7 +691,9 @@ class InferRequest:
                     shape=infer_input.shape,
                     datatype=infer_input.datatype,
                     data=infer_input.data,
-                    parameters=({} if infer_input.parameters is None else infer_input.parameters),
+                    parameters=(
+                        {} if infer_input.parameters is None else infer_input.parameters
+                    ),
                 )
             )
 
@@ -727,7 +751,9 @@ class InferRequest:
                 "datatype": infer_input.datatype,
             }
             if infer_input.parameters:
-                infer_input_dict["parameters"] = to_http_parameters(infer_input.parameters)
+                infer_input_dict["parameters"] = to_http_parameters(
+                    infer_input.parameters
+                )
             if infer_input._raw_data:
                 raw_inputs.append(infer_input._raw_data)
             else:
@@ -740,7 +766,9 @@ class InferRequest:
                     "name": requested_output.name,
                 }
                 if requested_output.parameters:
-                    requested_output_dict["parameters"] = to_http_parameters(requested_output.parameters)
+                    requested_output_dict["parameters"] = to_http_parameters(
+                        requested_output.parameters
+                    )
                 requested_outputs.append(requested_output_dict)
         res = {
             "id": self.id if self.id else str(uuid.uuid4()),
@@ -777,17 +805,22 @@ class InferRequest:
                 "datatype": infer_input.datatype,
             }
             if infer_input.parameters:
-                infer_input_dict["parameters"] = to_grpc_parameters(infer_input.parameters)
+                infer_input_dict["parameters"] = to_grpc_parameters(
+                    infer_input.parameters
+                )
             if infer_input._raw_data is not None:
                 raw_input_contents.append(infer_input._raw_data)
             else:
                 if not isinstance(infer_input.data, List):
                     raise InvalidInput("input data is not a List")
                 infer_input_dict["contents"] = {}
-                data_key = GRPC_CONTENT_DATATYPE_MAPPINGS.get(infer_input.datatype, None)
+                data_key = GRPC_CONTENT_DATATYPE_MAPPINGS.get(
+                    infer_input.datatype, None
+                )
                 if data_key is not None:
                     infer_input._data = [
-                        bytes(val, "utf-8") if isinstance(val, str) else val for val in infer_input.data
+                        bytes(val, "utf-8") if isinstance(val, str) else val
+                        for val in infer_input.data
                     ]  # str to byte conversion for grpc proto
                     infer_input_dict["contents"][data_key] = infer_input.data
                 else:
@@ -798,7 +831,9 @@ class InferRequest:
             for request_output in self.request_outputs:
                 request_output_dict = {"name": request_output.name}
                 if request_output.parameters:
-                    request_output_dict["parameters"] = to_grpc_parameters(request_output.parameters)
+                    request_output_dict["parameters"] = to_grpc_parameters(
+                        request_output.parameters
+                    )
                 request_outputs.append(request_output_dict)
 
         return ModelInferRequest(
@@ -821,7 +856,10 @@ class InferRequest:
         for input in self.inputs:
             input_data = input.data
             if input.datatype == "BYTES":
-                input_data = [str(val, "utf-8") if isinstance(val, bytes) else val for val in input.data]
+                input_data = [
+                    str(val, "utf-8") if isinstance(val, bytes) else val
+                    for val in input.data
+                ]
             dfs.append(pd.DataFrame(input_data, columns=[input.name]))
         return pd.concat(dfs, axis=1)
 
@@ -1021,7 +1059,9 @@ class InferOutput:
             output_tensor = output_tensor.astype(np.object_)
         if self._datatype != dtype:
             raise InferenceError(
-                "got unexpected datatype {} from numpy array, expected {}".format(dtype, self._datatype)
+                "got unexpected datatype {} from numpy array, expected {}".format(
+                    dtype, self._datatype
+                )
             )
         valid_shape = True
         if len(self._shape) != len(output_tensor.shape):
@@ -1045,7 +1085,9 @@ class InferOutput:
                 self._data = []
                 try:
                     if output_tensor.size > 0:
-                        for obj in np.nditer(output_tensor, flags=["refs_ok"], order="C"):
+                        for obj in np.nditer(
+                            output_tensor, flags=["refs_ok"], order="C"
+                        ):
                             # We need to convert the object to string using utf-8,
                             # if we want to use the binary_data=False. JSON requires
                             # the input to be a UTF-8 string.
@@ -1264,7 +1306,9 @@ class InferResponse:
                 binary_data_size = parameters.get("binary_data_size")
                 end_index = start_index + binary_data_size
                 infer_output._raw_data = res_bytes[start_index:end_index]
-                infer_output.set_data_from_numpy(infer_output.as_numpy(), binary_data=False)
+                infer_output.set_data_from_numpy(
+                    infer_output.as_numpy(), binary_data=False
+                )
                 start_index = end_index
             else:
                 infer_output_data = output.get("data", None)
@@ -1299,19 +1343,29 @@ class InferResponse:
         outputs = self._requested_outputs if self._requested_outputs else self.outputs
 
         for output in outputs:
-            infer_output = self.get_output_by_name(output.name) if self._requested_outputs else output
+            infer_output = (
+                self.get_output_by_name(output.name)
+                if self._requested_outputs
+                else output
+            )
             if self._requested_outputs:
                 use_binary_data = output.binary_data
             if infer_output is None:
-                raise InvalidInput(f"Unexpected inference output '{output.name}' for model '{self.model_name}'")
+                raise InvalidInput(
+                    f"Unexpected inference output '{output.name}' for model '{self.model_name}'"
+                )
             if infer_output.data is None and infer_output._raw_data is None:
                 raise InvalidInput(
                     f"'data' field is missing for output '{infer_output.name}' for model '{self.model_name}'"
                 )
             if isinstance(infer_output.data, np.ndarray):
-                infer_output.set_data_from_numpy(infer_output.data, binary_data=use_binary_data)
+                infer_output.set_data_from_numpy(
+                    infer_output.data, binary_data=use_binary_data
+                )
             elif infer_output.data or infer_output._raw_data:
-                infer_output.set_data_from_numpy(infer_output.as_numpy(), binary_data=use_binary_data)
+                infer_output.set_data_from_numpy(
+                    infer_output.as_numpy(), binary_data=use_binary_data
+                )
             if infer_output.datatype == "FP16" and infer_output.data:
                 raise InvalidInput(
                     f"Sending FP16 data via JSON is not supported. Please use the binary data format for output {infer_output.name}"
@@ -1323,7 +1377,9 @@ class InferResponse:
                 "datatype": infer_output.datatype,
             }
             if infer_output.parameters:
-                infer_output_dict["parameters"] = to_http_parameters(infer_output.parameters)
+                infer_output_dict["parameters"] = to_http_parameters(
+                    infer_output.parameters
+                )
             if use_binary_data:
                 raw_outputs.append(infer_output._raw_data)
             else:
@@ -1363,7 +1419,11 @@ class InferResponse:
             if _contains_fp16_datatype(self):
                 use_raw_outputs = True
         for infer_output in self.outputs:
-            if use_raw_outputs and infer_output.data and isinstance(infer_output.data, list):
+            if (
+                use_raw_outputs
+                and infer_output.data
+                and isinstance(infer_output.data, list)
+            ):
                 infer_output.data = infer_output.as_numpy()
             if isinstance(infer_output.data, np.ndarray):
                 infer_output.set_data_from_numpy(infer_output.data, binary_data=True)
@@ -1373,17 +1433,22 @@ class InferResponse:
                 "datatype": infer_output.datatype,
             }
             if infer_output.parameters:
-                infer_output_dict["parameters"] = to_grpc_parameters(infer_output.parameters)
+                infer_output_dict["parameters"] = to_grpc_parameters(
+                    infer_output.parameters
+                )
             if infer_output._raw_data is not None:
                 raw_output_contents.append(infer_output._raw_data)
             else:
                 if not isinstance(infer_output.data, List):
                     raise InvalidInput("output data is not a List")
                 infer_output_dict["contents"] = {}
-                data_key = GRPC_CONTENT_DATATYPE_MAPPINGS.get(infer_output.datatype, None)
+                data_key = GRPC_CONTENT_DATATYPE_MAPPINGS.get(
+                    infer_output.datatype, None
+                )
                 if data_key is not None:
                     infer_output._data = [
-                        bytes(val, "utf-8") if isinstance(val, str) else val for val in infer_output.data
+                        bytes(val, "utf-8") if isinstance(val, str) else val
+                        for val in infer_output.data
                     ]  # str to byte conversion for grpc proto
                     infer_output_dict["contents"][data_key] = infer_output.data
                 else:
@@ -1455,7 +1520,9 @@ class InferResponse:
 
 
 def to_grpc_parameters(
-    parameters: Union[Dict[str, Union[str, bool, int]], MessageMap[str, InferParameter]],
+    parameters: Union[
+        Dict[str, Union[str, bool, int]], MessageMap[str, InferParameter]
+    ],
 ) -> Dict[str, InferParameter]:
     """
     Converts REST parameters to GRPC InferParameter objects

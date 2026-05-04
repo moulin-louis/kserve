@@ -33,7 +33,9 @@ from typing import AsyncIterator, Union
 
 
 class DummyOpenAIGenerativeModel(OpenAIGenerativeModel):
-    async def create_completion(self, params: CompletionRequest) -> Union[Completion, AsyncIterator[Completion]]:
+    async def create_completion(
+        self, params: CompletionRequest
+    ) -> Union[Completion, AsyncIterator[Completion]]:
         pass
 
     async def create_chat_completion(

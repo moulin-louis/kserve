@@ -19,5 +19,3 @@ repos:
     hooks:
       - id: ruff-format
         args: [--config, ruff.toml]
-      - id: ruff
-        args: [--config, ruff.toml]

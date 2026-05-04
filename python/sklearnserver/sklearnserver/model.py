@@ -52,10 +52,14 @@ class SKLearnModel(Model):  # pylint:disable=c-extension-no-member
         self.ready = True
         return self.ready
 
-    def predict(self, payload: Union[Dict, InferRequest], headers: Dict[str, str] = None) -> Union[Dict, InferResponse]:
+    def predict(
+        self, payload: Union[Dict, InferRequest], headers: Dict[str, str] = None
+    ) -> Union[Dict, InferResponse]:
         try:
             instances = get_predict_input(payload)
-            if os.environ.get(ENV_PREDICT_PROBA, "false").lower() == "true" and hasattr(self._model, "predict_proba"):
+            if os.environ.get(ENV_PREDICT_PROBA, "false").lower() == "true" and hasattr(
+                self._model, "predict_proba"
+            ):
                 result = self._model.predict_proba(instances)
             else:
                 result = self._model.predict(instances)

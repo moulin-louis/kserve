@@ -22,7 +22,9 @@ converting low-level exceptions into user-friendly error messages.
 from .logging import logger
 
 
-def raise_storage_error(protocol: str, uri: str, error: Exception, resource_name: str = "") -> None:
+def raise_storage_error(
+    protocol: str, uri: str, error: Exception, resource_name: str = ""
+) -> None:
     """
     Unified error handler for all storage protocols.
     Logs the error and raises RuntimeError with a user-friendly message.
@@ -41,7 +43,9 @@ def raise_storage_error(protocol: str, uri: str, error: Exception, resource_name
     raise RuntimeError(error_msg) from error
 
 
-def get_storage_error_message(protocol: str, error: Exception, resource_name: str = "") -> str:
+def get_storage_error_message(
+    protocol: str, error: Exception, resource_name: str = ""
+) -> str:
     """
     Get user-friendly error message for storage errors across all protocols.
 
@@ -64,7 +68,11 @@ def get_storage_error_message(protocol: str, error: Exception, resource_name: st
         "ClientAuthenticationError",
         "GatedRepoError",
     )
-    if error_type in auth_error_types or "credential" in error_str or "auth" in error_str:
+    if (
+        error_type in auth_error_types
+        or "credential" in error_str
+        or "auth" in error_str
+    ):
         auth_hints = {
             "S3": "Set AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY or use awsAnonymousCredential=true.",
             "GCS": "Verify GOOGLE_APPLICATION_CREDENTIALS or use anonymous access.",
@@ -86,14 +94,22 @@ def get_storage_error_message(protocol: str, error: Exception, resource_name: st
         "RepositoryNotFoundError",
         "RevisionNotFoundError",
     )
-    if error_type in not_found_types or "not found" in error_str or "does not exist" in error_str:
+    if (
+        error_type in not_found_types
+        or "not found" in error_str
+        or "does not exist" in error_str
+    ):
         if resource_name:
             return "%s resource '%s' not found." % (protocol, resource_name)
         return "%s resource not found." % protocol
 
     # Access denied errors
     access_denied_types = ("Forbidden", "AccessDenied")
-    if error_type in access_denied_types or "access denied" in error_str or "permission" in error_str:
+    if (
+        error_type in access_denied_types
+        or "access denied" in error_str
+        or "permission" in error_str
+    ):
         if resource_name:
             return "Access denied to %s resource '%s'. Verify permissions." % (
                 protocol,
@@ -102,7 +118,11 @@ def get_storage_error_message(protocol: str, error: Exception, resource_name: st
         return "Access denied. Verify %s permissions." % protocol
 
     # Connection errors
-    if error_type == "ConnectionError" or "connection" in error_str or "timeout" in error_str:
+    if (
+        error_type == "ConnectionError"
+        or "connection" in error_str
+        or "timeout" in error_str
+    ):
         if resource_name:
             return "Failed to connect to %s endpoint '%s'." % (
                 protocol,
@@ -146,4 +166,7 @@ def check_http_response(uri: str, response) -> None:
     if response.status_code in status_messages:
         raise RuntimeError(status_messages[response.status_code] % uri)
     if response.status_code != 200:
-        raise RuntimeError("HTTP request to '%s' failed with status code %s." % (uri, response.status_code))
+        raise RuntimeError(
+            "HTTP request to '%s' failed with status code %s."
+            % (uri, response.status_code)
+        )

@@ -63,7 +63,11 @@ def _get_and_verify_max_len(
     # than the sliding window length in the model config.
     if disable_sliding_window and sliding_window_len is not None:
         sliding_window_len_min = get_min_sliding_window(sliding_window_len)
-        max_len_key = "sliding_window" if sliding_window_len_min < derived_max_model_len else max_len_key
+        max_len_key = (
+            "sliding_window"
+            if sliding_window_len_min < derived_max_model_len
+            else max_len_key
+        )
         derived_max_model_len = min(derived_max_model_len, sliding_window_len_min)
 
     # If none of the keys were found in the config, use a default and
@@ -147,7 +151,9 @@ def _get_and_verify_max_len(
                     msg,
                 )
             else:
-                raise ValueError(f"{msg} To allow overriding this maximum, set the env var ALLOW_LONG_MAX_MODEL_LEN=1")
+                raise ValueError(
+                    f"{msg} To allow overriding this maximum, set the env var ALLOW_LONG_MAX_MODEL_LEN=1"
+                )
     return int(max_model_len)
 
 
@@ -178,7 +184,9 @@ def _mean_pooling(outputs, attention_mask: "torch.Tensor|None") -> "torch.Tensor
         )
     else:
         # Align device and dtype with embeddings (avoid cuda/cpu mismatch and fp16 issues)
-        attention_mask = attention_mask.to(device=token_embeddings.device, dtype=token_embeddings.dtype)
+        attention_mask = attention_mask.to(
+            device=token_embeddings.device, dtype=token_embeddings.dtype
+        )
 
     # Expand mask dimensions to match token embeddings
     input_mask_expanded = attention_mask.unsqueeze(-1).expand_as(token_embeddings)

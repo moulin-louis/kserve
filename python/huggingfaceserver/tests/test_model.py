@@ -265,14 +265,18 @@ async def test_model_revision(request: HuggingfaceEncoderModel):
 @pytest.mark.asyncio
 async def test_bert_sequence_classification(bert_base_yelp_polarity):
     request = "Hello, my dog is cute."
-    response, _ = await bert_base_yelp_polarity({"instances": [request, request]}, headers={})
+    response, _ = await bert_base_yelp_polarity(
+        {"instances": [request, request]}, headers={}
+    )
     assert response == {"predictions": [1, 1]}
 
 
 @pytest.mark.asyncio
 async def test_bert_sequence_classification_return_probabilities(bert_base_return_prob):
     request = "Hello, my dog is cute."
-    response, _ = await bert_base_return_prob({"instances": [request, request]}, headers={})
+    response, _ = await bert_base_return_prob(
+        {"instances": [request, request]}, headers={}
+    )
 
     assert response == {"predictions": [{0: 0.0012, 1: 0.9988}, {0: 0.0012, 1: 0.9988}]}
 
@@ -282,7 +286,9 @@ async def test_bert_sequence_classification_return_raw_logits(
     bert_base_return_raw_logits,
 ):
     request = "Hello, my dog is cute."
-    response, _ = await bert_base_return_raw_logits({"instances": [request, request]}, headers={})
+    response, _ = await bert_base_return_raw_logits(
+        {"instances": [request, request]}, headers={}
+    )
 
     assert response == {
         "predictions": [
@@ -304,14 +310,18 @@ async def test_bert_token_classification_return_raw_logits(
 ):
     request = "Hello, my dog is cute."
 
-    response, _ = await bert_token_classification_return_raw_logits({"instances": [request, request]}, headers={})
+    response, _ = await bert_token_classification_return_raw_logits(
+        {"instances": [request, request]}, headers={}
+    )
     assert response == bert_token_classification_return_raw_logits_expected_output
 
 
 @pytest.mark.asyncio
 async def test_bert_token_classification(bert_token_classification):
     request = "HuggingFace is a company based in Paris and New York"
-    response, _ = await bert_token_classification({"instances": [request, request]}, headers={})
+    response, _ = await bert_token_classification(
+        {"instances": [request, request]}, headers={}
+    )
     assert response == {
         "predictions": [
             [[0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]],
@@ -329,7 +339,10 @@ async def test_bloom_completion(bloom_model: HuggingfaceGenerativeModel):
         echo=True,
     )
     response = await bloom_model.create_completion(request)
-    assert response.choices[0].text == "Hello, my dog is cute.\n- Hey, my dog is cute.\n- Hey, my dog is cute"
+    assert (
+        response.choices[0].text
+        == "Hello, my dog is cute.\n- Hey, my dog is cute.\n- Hey, my dog is cute"
+    )
 
 
 @pytest.mark.asyncio
@@ -424,7 +437,10 @@ async def test_bloom_chat_completion_streaming(bloom_model: HuggingfaceGenerativ
             break
         chunk = json.loads(chunk)
         output += chunk["choices"][0]["delta"]["content"]
-    assert output == "The first thing you need to do is to get a good idea of what you are looking for."
+    assert (
+        output
+        == "The first thing you need to do is to get a good idea of what you are looking for."
+    )
 
 
 @pytest.mark.asyncio
@@ -445,9 +461,15 @@ async def test_text_embedding(text_embedding):
     predictions = response["predictions"]
 
     # The first two requests are semantically similar, so the cosine similarity should be high
-    assert cosine_similarity(torch.tensor(predictions[0]), torch.tensor(predictions[1]))[0] > 0.9
+    assert (
+        cosine_similarity(torch.tensor(predictions[0]), torch.tensor(predictions[1]))[0]
+        > 0.9
+    )
     # The third request is semantically different, so the cosine similarity should be low
-    assert cosine_similarity(torch.tensor(predictions[0]), torch.tensor(predictions[2]))[0] < 0.55
+    assert (
+        cosine_similarity(torch.tensor(predictions[0]), torch.tensor(predictions[2]))[0]
+        < 0.55
+    )
 
 
 @pytest.mark.asyncio
@@ -456,7 +478,9 @@ async def test_input_padding(bert_base_yelp_polarity: HuggingfaceEncoderModel):
     # unless we set padding=True in the tokenizer
     request_one = "Hello, my dog is cute."
     request_two = "Hello there, my dog is cute."
-    response, _ = await bert_base_yelp_polarity({"instances": [request_one, request_two]}, headers={})
+    response, _ = await bert_base_yelp_polarity(
+        {"instances": [request_one, request_two]}, headers={}
+    )
     assert response == {"predictions": [1, 1]}
 
 
@@ -486,7 +510,10 @@ async def test_input_padding_with_pad_token_not_specified(
         temperature=0,
     )
     response = await openai_gpt_model.create_completion(request)
-    assert response.choices[0].text == "west , and the sun sets in the west . \n the sun rises in the"
+    assert (
+        response.choices[0].text
+        == "west , and the sun sets in the west . \n the sun rises in the"
+    )
     # Verify batched inference with different length prompts succeeds (padding works)
     assert len(response.choices) == 2
     assert response.choices[0].text is not None and len(response.choices[0].text) > 0

@@ -29,7 +29,9 @@ BOOSTER_FILE_EXTENSIONS = (".bst", ".json", ".ubj")
 
 
 class XGBoostModel(Model):
-    def __init__(self, name: str, model_dir: str, nthread: int, booster: XGBModel = None):
+    def __init__(
+        self, name: str, model_dir: str, nthread: int, booster: XGBModel = None
+    ):
         super().__init__(name)
         self.name = name
         self.model_dir = model_dir
@@ -54,11 +56,15 @@ class XGBoostModel(Model):
 
         with open(model_files[0], "rb") as f:
             model_bytes = f.read()
-        self._booster = xgb.Booster(params={"nthread": self.nthread}, model_file=bytearray(model_bytes))
+        self._booster = xgb.Booster(
+            params={"nthread": self.nthread}, model_file=bytearray(model_bytes)
+        )
         self.ready = True
         return self.ready
 
-    def predict(self, payload: Union[Dict, InferRequest], headers: Dict[str, str] = None) -> Union[Dict, InferResponse]:
+    def predict(
+        self, payload: Union[Dict, InferRequest], headers: Dict[str, str] = None
+    ) -> Union[Dict, InferResponse]:
         try:
             # Use of list as input is deprecated see https://github.com/dmlc/xgboost/pull/3970
             instances = get_predict_input(payload)
